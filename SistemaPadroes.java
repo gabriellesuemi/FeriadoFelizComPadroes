@@ -314,18 +314,88 @@ class SistemaNotificacao implements Sujeito {
 }
 
 
+// VISITOR
 
 interface Visitor {
     void visitarMusica(Musica musica);
     void visitarPodcast(Podcast podcast);
 }
 
+// Visitor concreto para relatório
+class RelatorioVisitor implements Visitor {
+    @Override
+    public void visitarMusica(Musica musica) {
+        System.out.println("Relatório Música -> Título: " + musica.getTitulo()
+                + ", Artista: " + musica.getArtista());
+    }
+
+    @Override
+    public void visitarPodcast(Podcast podcast) {
+        System.out.println("Relatório Podcast -> Título: " + podcast.getTitulo()
+                + ", Apresentador: " + podcast.getApresentador());
+    }
+}
+
+
+// CLASSE PRINCIPAL
+
 public class SistemaPadroes {
     public static void main(String[] args) {
-        Musica musica = new Musica("Eduardo e Mônica", "Legião Urbana");
-        Podcast podcast = new Podcast("Tecnologia", "Camila");
 
-        System.out.println(musica.getTitulo());
-        System.out.println(podcast.getTitulo());
+        System.out.println("SISTEMA DE STREAMING");
+
+        // Singleton
+        ConfiguracaoStreaming config = ConfiguracaoStreaming.getInstancia();
+        System.out.println("Nome da plataforma: " + config.getNomePlataforma());
+
+        // Proxy
+        ProxyCatalogo catalogo = new ProxyCatalogo(true);
+
+        // Observer
+        SistemaNotificacao sistemaNotificacao = new SistemaNotificacao();
+        UsuarioObservador usuario1 = new UsuarioObservador("Ana");
+        UsuarioObservador usuario2 = new UsuarioObservador("João");
+
+        sistemaNotificacao.adicionarObservador(usuario1);
+        sistemaNotificacao.adicionarObservador(usuario2);
+
+        // Adapter
+        ArquivoLocalPlayer playerLocal = new ArquivoLocalPlayer();
+        Reprodutor adaptador = new AdaptadorArquivoLocal(playerLocal);
+
+        // Facade
+        PlataformaStreamingFacade facade = new PlataformaStreamingFacade(
+                catalogo,
+                sistemaNotificacao,
+                adaptador
+        );
+
+        // Factory + Facade + Observer
+        facade.cadastrarConteudo("musica", "Eduardo e Mônica", "Legião Urbana");
+        facade.cadastrarConteudo("podcast", "Tecnologia", "Camila");
+
+        // Proxy + Facade
+        System.out.println("\nCatálogo:");
+        facade.listarCatalogo();
+
+        // Adapter + Facade
+        System.out.println("\nReprodução:");
+        facade.tocarConteudo("nome_musica.mp3");
+
+        // Decorator
+        System.out.println("\nTocador com Decorator:");
+        Tocador tocador = new ModoPremiumDecorator(
+                new EqualizadorDecorator(
+                        new TocadorSimples()
+                )
+        );
+        tocador.tocar("Eduardo e Mônica");
+
+        // Visitor
+        System.out.println("\nVisitor:");
+        Visitor visitor = new RelatorioVisitor();
+        for (Conteudo c : catalogo.listarConteudos()) {
+            c.aceitar(visitor);
+        }
     }
 }
