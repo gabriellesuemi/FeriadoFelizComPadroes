@@ -50,6 +50,48 @@ class Podcast implements Conteudo {
     }
 }
 
+
+// FACTORY
+
+class FabricaConteudo {
+    public static Conteudo criarConteudo(String tipo, String titulo, String autor) {
+        if (tipo.equalsIgnoreCase("musica")) {
+            return new Musica(titulo, autor);
+        } else if (tipo.equalsIgnoreCase("podcast")) {
+            return new Podcast(titulo, autor);
+        }
+
+        throw new IllegalArgumentException("Tipo de conteúdo inválido.");
+    }
+}
+
+
+// SINGLETON
+
+class ConfiguracaoStreaming {
+    private static ConfiguracaoStreaming instancia;
+    private String nomePlataforma;
+
+    private ConfiguracaoStreaming() {
+        this.nomePlataforma = "StreamMusic";
+    }
+
+    public static ConfiguracaoStreaming getInstancia() {
+        if (instancia == null) {
+            instancia = new ConfiguracaoStreaming();
+        }
+        return instancia;
+    }
+
+    public String getNomePlataforma() {
+        return nomePlataforma;
+    }
+
+    public void setNomePlataforma(String nomePlataforma) {
+        this.nomePlataforma = nomePlataforma;
+    }
+}
+
 interface Visitor {
     void visitarMusica(Musica musica);
     void visitarPodcast(Podcast podcast);
