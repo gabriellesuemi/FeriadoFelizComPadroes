@@ -169,6 +169,152 @@ class AdaptadorArquivoLocal implements Reprodutor {
 }
 
 
+// FACADE
+
+class PlataformaStreamingFacade {
+    private Catalogo catalogo;
+    private SistemaNotificacao sistemaNotificacao;
+    private Reprodutor reprodutor;
+
+    public PlataformaStreamingFacade(Catalogo catalogo, SistemaNotificacao sistemaNotificacao, Reprodutor reprodutor) {
+        this.catalogo = catalogo;
+        this.sistemaNotificacao = sistemaNotificacao;
+        this.reprodutor = reprodutor;
+    }
+
+    public void cadastrarConteudo(String tipo, String titulo, String autor) {
+        Conteudo conteudo = FabricaConteudo.criarConteudo(tipo, titulo, autor);
+        catalogo.adicionarConteudo(conteudo);
+        sistemaNotificacao.novoConteudoAdicionado(conteudo);
+    }
+
+    public void listarCatalogo() {
+        for (Conteudo c : catalogo.listarConteudos()) {
+            System.out.println("- " + c.getTitulo());
+        }
+    }
+
+    public void tocarConteudo(String titulo) {
+        reprodutor.reproduzir(titulo);
+    }
+}
+
+
+// DECORATOR
+
+interface Tocador {
+    void tocar(String titulo);
+}
+
+// Componente concreto
+class TocadorSimples implements Tocador {
+    @Override
+    public void tocar(String titulo) {
+        System.out.println("Tocando: " + titulo);
+    }
+}
+
+// Decorator base
+abstract class TocadorDecorator implements Tocador {
+    protected Tocador tocador;
+
+    public TocadorDecorator(Tocador tocador) {
+        this.tocador = tocador;
+    }
+
+    @Override
+    public void tocar(String titulo) {
+        tocador.tocar(titulo);
+    }
+}
+
+// Decorator concreto: equalizador
+class EqualizadorDecorator extends TocadorDecorator {
+    public EqualizadorDecorator(Tocador tocador) {
+        super(tocador);
+    }
+
+    @Override
+    public void tocar(String titulo) {
+        super.tocar(titulo);
+        System.out.println("Equalizador ativado.");
+    }
+}
+
+// Decorator concreto: modo premium
+class ModoPremiumDecorator extends TocadorDecorator {
+    public ModoPremiumDecorator(Tocador tocador) {
+        super(tocador);
+    }
+
+    @Override
+    public void tocar(String titulo) {
+        super.tocar(titulo);
+        System.out.println("Modo premium: áudio sem anúncios.");
+    }
+}
+
+
+// OBSERVER
+
+interface Observador {
+    void atualizar(Conteudo conteudo);
+}
+
+interface Sujeito {
+    void adicionarObservador(Observador o);
+    void removerObservador(Observador o);
+    void notificarObservadores(Conteudo conteudo);
+}
+
+// Observador concreto
+class UsuarioObservador implements Observador {
+    private String nome;
+    private Conteudo ultimoRecebido;
+
+    public UsuarioObservador(String nome) {
+        this.nome = nome;
+    }
+
+    @Override
+    public void atualizar(Conteudo conteudo) {
+        ultimoRecebido = conteudo;
+        System.out.println(nome + " recebeu notificação: novo conteúdo -> " + conteudo.getTitulo());
+    }
+
+    public Conteudo getUltimoRecebido() {
+        return ultimoRecebido;
+    }
+}
+
+// Sujeito concreto
+class SistemaNotificacao implements Sujeito {
+    private List<Observador> observadores = new ArrayList<>();
+
+    @Override
+    public void adicionarObservador(Observador o) {
+        observadores.add(o);
+    }
+
+    @Override
+    public void removerObservador(Observador o) {
+        observadores.remove(o);
+    }
+
+    @Override
+    public void notificarObservadores(Conteudo conteudo) {
+        for (Observador o : observadores) {
+            o.atualizar(conteudo);
+        }
+    }
+
+    public void novoConteudoAdicionado(Conteudo conteudo) {
+        notificarObservadores(conteudo);
+    }
+}
+
+
+
 interface Visitor {
     void visitarMusica(Musica musica);
     void visitarPodcast(Podcast podcast);
