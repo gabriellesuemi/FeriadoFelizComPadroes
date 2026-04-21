@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 
 interface Conteudo {
     String getTitulo();
@@ -91,6 +93,81 @@ class ConfiguracaoStreaming {
         this.nomePlataforma = nomePlataforma;
     }
 }
+
+
+// PROXY
+
+interface Catalogo {
+    void adicionarConteudo(Conteudo conteudo);
+    List<Conteudo> listarConteudos();
+}
+
+class CatalogoReal implements Catalogo {
+    private List<Conteudo> conteudos = new ArrayList<>();
+
+    @Override
+    public void adicionarConteudo(Conteudo conteudo) {
+        conteudos.add(conteudo);
+    }
+
+    @Override
+    public List<Conteudo> listarConteudos() {
+        return conteudos;
+    }
+}
+
+class ProxyCatalogo implements Catalogo {
+    private CatalogoReal catalogoReal;
+    private boolean usuarioPremium;
+
+    public ProxyCatalogo(boolean usuarioPremium) {
+        this.catalogoReal = new CatalogoReal();
+        this.usuarioPremium = usuarioPremium;
+    }
+
+    @Override
+    public void adicionarConteudo(Conteudo conteudo) {
+        catalogoReal.adicionarConteudo(conteudo);
+    }
+
+    @Override
+    public List<Conteudo> listarConteudos() {
+        if (usuarioPremium) {
+            System.out.println("Proxy: acesso liberado para usuário premium.");
+        } else {
+            System.out.println("Proxy: acesso limitado para usuário comum.");
+        }
+        return catalogoReal.listarConteudos();
+    }
+}
+
+
+// ADAPTER
+
+interface Reprodutor {
+    void reproduzir(String titulo);
+}
+
+class ArquivoLocalPlayer {
+    public void playFile(String nomeArquivo) {
+        System.out.println("Reproduzindo arquivo local: " + nomeArquivo);
+    }
+}
+
+// Adaptador
+class AdaptadorArquivoLocal implements Reprodutor {
+    private ArquivoLocalPlayer playerLocal;
+
+    public AdaptadorArquivoLocal(ArquivoLocalPlayer playerLocal) {
+        this.playerLocal = playerLocal;
+    }
+
+    @Override
+    public void reproduzir(String titulo) {
+        playerLocal.playFile(titulo);
+    }
+}
+
 
 interface Visitor {
     void visitarMusica(Musica musica);
